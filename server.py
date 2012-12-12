@@ -28,17 +28,17 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self.send_response(200)
-        self.send_header("Content-type", "text/plain")
-        self.end_headers()
-        self.wfile.write("Hello World!")
+        #self.send_header("Content-type", "text/plain")
+        #self.end_headers()
+        #self.wfile.write("Hello World!")
 
         # Get url from query
         url = urlparse(self.path).query
 
+        # Get keywords of the page (takes care of html tags)
         keywords = KeyWordGetter(url).get_keywords()
 
         print 'Top keywords for %s are %s' % (url, str(keywords))
-
 
         sound_pairs = []
 
@@ -47,8 +47,6 @@ class Handler(BaseHTTPRequestHandler):
             #sound_pair.extend( fs.search(keyword, tfidf) )
 
         # Concurrent Version using worker threads
-
-
         worker_threads = []
         for i in range(5) :
             t = threading.Thread(target=worker, args=(keywords[i], sound_pairs))
@@ -65,19 +63,21 @@ class Handler(BaseHTTPRequestHandler):
                 t.handled = True
         worker_threads = [t for t in worker_threads if not t.handled]
 
-        # Sort pairs
+        # After collecting all sound results from freesound
+        # Sort sounds by second element (determined weight)
         sound_pairs = sorted(sound_pairs, key=itemgetter(1),reverse=True)
 
-        # TODO In between 8 sounds
-        #sender = MaxMessageSender()
+        # Send sound urls to MAX MSP 
+        # TODO Proper handeling of not enough sounds found
         num_sounds = 8
         if len(sound_pairs) >= num_sounds :
             i = 1
-            for (url, weight) in sound_pairs[0 : num_sounds] :
-                # format message for MAX MSP OSC-Route
-                msg = "/%d decodeNetworkFileToBuf %s buf%d"%(i, url, i)
+            for (i, (url,weight)) in enumerate(sound_pairs[0 : num_sounds]):
+            #for (url, weight) in sound_pairs[0 : num_sounds] :
+                # Special formated message for MAX MSP OSC-Route
+                msg = "/%d decodeNetworkFileToBuf %s buf%d"%(i+1, url, i+1)
                 sender.send_message(msg)
-                i += 1
+                #i += 1
         else :
             print 'WARNING: Less than 8 sounds returned from freesound.org'
 
@@ -124,6 +124,8 @@ class MaxMessageSender():
 # Grabs first 5 keywords
 class KeyWordGetter():
     def __init__(self, url) :
+        logging.debug('Enter KeyWordGetter')
+        logging.debug('\tDownloading HTML')
         opener = urllib2.build_opener()
         opener.addheaders = [('User-agent', 'Mozilla/5.0')]
         response = opener.open(url)
@@ -131,14 +133,24 @@ class KeyWordGetter():
         # Get HTML from a url
         html = response.read()
 
+        logging.debug('\tCleaning HTML')
         # Strip tags and tokenize from HTML content
         clean_text = nltk.clean_html(html)
 
+        MAX_STR_LEN = 1000 # APPRX 1 page. Avoid bottleneck
+        if len(clean_text) > MAX_STR_LEN :
+            clean_text = clean_text[:1000]
+
+        print len(clean_text)
+
+        logging.debug('\tDetermine Keywords from TF-IDF')
         keywords = []
+        a = myTfIdf
         for pair in myTfIdf.get_doc_keywords(clean_text)[0:5] :
             keywords.append(pair)
 
         self.keywords = keywords
+        logging.debug('\tExit KeyWordGetter')
 
     def get_keywords(self) :
         return self.keywords
@@ -165,7 +177,7 @@ def serve_on_port(port):
 
 
 fs = FreesoundSearcher()
-myTfIdf = TfIdf("corpus.txt", "stopwords.txt")
+myTfIdf = TfIdf("corpus10k.txt", "stopwords10k.txt")
 sender = MaxMessageSender()
 serve_on_port(8082)
 

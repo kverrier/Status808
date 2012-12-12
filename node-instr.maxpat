@@ -568,7 +568,7 @@
 					"numinlets" : 3,
 					"numoutlets" : 3,
 					"outlettype" : [ "signal", "signal", "signal" ],
-					"patching_rect" : [ 587.5, 329.0, 114.0, 20.0 ],
+					"patching_rect" : [ 540.5, 320.0, 114.0, 20.0 ],
 					"text" : "groove~ mybuffer 2"
 				}
 
@@ -945,6 +945,24 @@
 			}
 , 			{
 				"patchline" : 				{
+					"destination" : [ "obj-26", 2 ],
+					"disabled" : 0,
+					"hidden" : 0,
+					"source" : [ "obj-2", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-26", 1 ],
+					"disabled" : 0,
+					"hidden" : 0,
+					"source" : [ "obj-2", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
 					"destination" : [ "obj-99", 0 ],
 					"disabled" : 0,
 					"hidden" : 0,
@@ -1147,24 +1165,6 @@
 					"disabled" : 0,
 					"hidden" : 0,
 					"source" : [ "obj-9", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-26", 2 ],
-					"disabled" : 0,
-					"hidden" : 0,
-					"source" : [ "obj-99", 1 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-26", 1 ],
-					"disabled" : 0,
-					"hidden" : 0,
-					"source" : [ "obj-99", 0 ]
 				}
 
 			}
