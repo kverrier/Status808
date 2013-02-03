@@ -23,6 +23,8 @@ class Handler(BaseHTTPRequestHandler):
 
         sound_urls = freesound_searcher.get_sounds_from_url(url)
 
+        print sound_urls
+
         # Send sound urls to MAX MSP 
         for (i, url) in enumerate(sound_urls) :
             # Special formated message for MAX MSP OSC-Route

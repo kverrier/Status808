@@ -57,7 +57,6 @@ if __name__ == "__main__" :
         #myTfIdf.add_input_document(clean_text)
 
 
-    sample_text = get_clean_text("
 
     count = 1
     print "TOP 5 Keywords"
