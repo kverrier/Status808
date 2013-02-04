@@ -9,7 +9,7 @@ from socket import *
 from freesound.__init__ import *
 
 
-def get_clean_text(URL) :
+def get_clean_text(URL):
     opener = urllib2.build_opener()
     opener.addheaders = [('User-agent', 'Mozilla/5.0')]
     response = opener.open(URL)
@@ -22,47 +22,51 @@ def get_clean_text(URL) :
     return clean_text
 
 
-
-def clean_html_thread(url, content) :
+def clean_html_thread(url, content):
     """thread worker function"""
     content.append(get_clean_text(url))
 
-def print_keywords(document) :
+
+def print_keywords(document):
     keywords = myTfIdf.get_doc_keywords(document)[0:5]
     print 'Top keywords: ',
-    for (word, val) in keywords : print '%s' %(word),
+    for (word, val) in keywords:
+        print '%s' % (word),
     print
 
-# SETTINGS
-NUM_PAGES = 10000
-corpus_filename = "corpus10k.txt"
-stopwords_filename = "stopwords10k.txt"
 
-myTfIdf = TfIdf(corpus_filename, stopwords_filename)
+def main():
+    # SETTINGS
+    NUM_PAGES = 10000
+    corpus_filename = "corpus10k.txt"
+    stopwords_filename = "stopwords10k.txt"
 
-content = []
-worker_threads = []
+    myTfIdf = TfIdf(corpus_filename, stopwords_filename)
 
-url = 'http://en.wikipedia.org/wiki/Special:Random'
+    content = []
+    worker_threads = []
 
-for i in range(NUM_PAGES) :
-    t = threading.Thread(target=clean_html_thread, args=(url, content,))
-    t.start()
-    worker_threads.append(t)
+    url = 'http://en.wikipedia.org/wiki/Special:Random'
 
-for t in worker_threads :
-    t.join()
+    for i in range(NUM_PAGES):
+        t = threading.Thread(target=clean_html_thread, args=(url, content,))
+        t.start()
+        worker_threads.append(t)
 
-for t in worker_threads:
-    if not t.isAlive():
-        # get results from thtead
-        t.handled = True
-worker_threads = [t for t in worker_threads if not t.handled]
+    for t in worker_threads:
+        t.join()
 
-for document in content :
-    myTfIdf.add_input_document(document)
-    print_keywords(document)
+    for t in worker_threads:
+        if not t.isAlive():
+            # get results from thtead
+            t.handled = True
+    worker_threads = [t for t in worker_threads if not t.handled]
 
-myTfIdf.save_corpus_to_file(corpus_filename, stopwords_filename)
+    for document in content:
+        myTfIdf.add_input_document(document)
+        print_keywords(document)
 
+    myTfIdf.save_corpus_to_file(corpus_filename, stopwords_filename)
 
+if __name__ == "__main__":
+    main()
