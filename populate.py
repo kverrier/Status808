@@ -1,25 +1,12 @@
 #!/usr/bin/env python
 
-import logging
-
 import threading
-from threading import Thread
-from SocketServer import ThreadingMixIn
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
-
-from urlparse import urlparse
 import urllib2
 import nltk
 from tfidf import TfIdf
 
 from socket import *
 from freesound.__init__ import *
-
-from operator import itemgetter
-
-#logging.basicConfig(level=logging.DEBUG,
-                    #format='(%(threadName)-10s) %(message)s',
-                    #)
 
 
 def get_clean_text(URL) :
@@ -38,9 +25,7 @@ def get_clean_text(URL) :
 
 def clean_html_thread(url, content) :
     """thread worker function"""
-    t = threading.currentThread()
     content.append(get_clean_text(url))
-    logging.debug('ending')
 
 def print_keywords(document) :
     keywords = myTfIdf.get_doc_keywords(document)[0:5]
@@ -48,14 +33,15 @@ def print_keywords(document) :
     for (word, val) in keywords : print '%s' %(word),
     print
 
-#myTfIdf = TfIdf("corpus.txt", "stopwords.txt")
-#myTfIdf = TfIdf("corpus100.txt", "stopwords100.txt")
-myTfIdf = TfIdf("corpus10k.txt", "stopwords10k.txt")
-NUM_PAGES = 1
+# SETTINGS
+NUM_PAGES = 10000
+corpus_filename = "corpus10k.txt"
+stopwords_filename = "stopwords10k.txt"
+
+myTfIdf = TfIdf(corpus_filename, stopwords_filename)
 
 content = []
 worker_threads = []
-
 
 url = 'http://en.wikipedia.org/wiki/Special:Random'
 
@@ -65,7 +51,6 @@ for i in range(NUM_PAGES) :
     worker_threads.append(t)
 
 for t in worker_threads :
-    logging.debug('joining %s', t.getName())
     t.join()
 
 for t in worker_threads:
@@ -75,11 +60,9 @@ for t in worker_threads:
 worker_threads = [t for t in worker_threads if not t.handled]
 
 for document in content :
-    #myTfIdf.add_input_document(document)
-    print 'Enter'
+    myTfIdf.add_input_document(document)
     print_keywords(document)
-    print 'Exit'
 
-#myTfIdf.save_corpus_to_file('corpus500.txt', 'stopwords500.txt')
+myTfIdf.save_corpus_to_file(corpus_filename, stopwords_filename)
 
 
