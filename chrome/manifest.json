@@ -1,0 +1,14 @@
+{
+  "name": "Server Messager",
+  "version": "1.0",
+  "description": "Send message to my server",
+  "manifest_version": 2,
+  "permissions": ["tabs"],
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": [ "content_script.js"]
+    }
+  ],
+  "web_accessible_resources": ["script.js"]
+}
